@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect } from 'react';
+import BackHeader from "@/app/components/BackHeader/BackHeader";
 
 export default function Role() {
     const [text, setText] = useState("");
@@ -59,13 +60,8 @@ export default function Role() {
 
             <div className="relative z-10 w-full flex flex-col items-center">
                 {/* Header */}
-                <header className="w-full p-4 bg-white/30 backdrop-blur-sm">
-                    <Link
-                        href="/"
-                        className="text-[#094067] font-semibold hover:text-white transition duration-300"
-                    >
-                        &larr; Back
-                    </Link>
+                <header className="w-full p-1">
+                    <BackHeader href="/" label="Back" />
                 </header>
 
                 {/* Title */}
