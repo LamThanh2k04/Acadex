@@ -8,7 +8,7 @@ import { checkPassword } from "../../common/utils/checkPassword.js"
 export const authService = {
     registerAdmin: async (data) => {
         const { fullName, email, password } = data
-        checkEmail(email)
+        checkEmail(email, "admin")
         checkPassword(password)
         let missingField = []
         if (!fullName) missingField.push("fullName")
@@ -50,19 +50,19 @@ export const authService = {
 
     login: async (data) => {
         const { email, password } = data
-        const user = await prisma.user.findUnique({where : {email}})
+        const user = await prisma.user.findUnique({ where: { email } })
         let missingField = []
         if (!email) missingField.push("email")
         if (!password) missingField.push("password")
         if (missingField.length > 0) {
             throw new BadrequestException(`Thiếu trường: ${missingField.join(",")} để đăng nhập`)
         }
-        checkEmail(email,user.role)
-        const isMatch = bcrypt.compare(password,user.password)
+        checkEmail(email, user.role)
+        const isMatch = bcrypt.compare(password, user.password)
         if (!isMatch) {
             throw new BadrequestException("Mật khẩu không đúng. Vui lòng nhập lại")
         }
-        const token = generateToken(user.id,user.role,user)
+        const token = generateToken(user.id, user.role, user)
         return {
             token
         }
