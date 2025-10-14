@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  student
+  lecturer
+  admin
+}
+
+model User {
+  id           Int        @id @default(autoincrement())
+  userCode     String?    @unique
+  fullName     String
+  avatar       String?
+  email        String     @unique
+  password     String
+  gender       String?
+  dateOfBirth  DateTime?
+  phone        String?
+  address      String?
+  role         Role       @default(admin)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Quan hệ ngược
+  student      Student?
+  lecturer     Lecturer?
+}
+
+model Student {
+  id              Int        @id @default(autoincrement())
+  userId          Int        @unique
+  classId         Int?
+  facultyId       Int?
+  majorId         Int?
+  trainingLevel   String?
+  status          String?
+  statusUpdatedAt DateTime?
+
+  // Quan hệ
+  user      User     @relation(fields: [userId], references: [id])
+  class     Class?   @relation(fields: [classId], references: [id])
+  faculty   Faculty? @relation(fields: [facultyId], references: [id])
+  major     Major?   @relation(fields: [majorId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lecturer {
+  id              Int        @id @default(autoincrement())
+  userId          Int        @unique
+  facultyId       Int?
+  degree          String?
+  specialization  String?
+  position        String?
+  status          String?
+  statusUpdatedAt DateTime?
+  stoppedAt       DateTime?
+
+
+  user      User     @relation(fields: [userId], references: [id])
+  faculty   Faculty? @relation(fields: [facultyId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Faculty {
+  id         Int         @id @default(autoincrement())
+  name       String
+
+
+  majors     Major[]
+  students   Student[]
+  lecturers  Lecturer[]
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Major {
+  id         Int         @id @default(autoincrement())
+  name       String
+  facultyId  Int
+
+
+  faculty    Faculty     @relation(fields: [facultyId], references: [id])
+  classes    Class[]
+  students   Student[]   
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Class {
+  id         Int         @id @default(autoincrement())
+  name       String
+  majorId    Int
+
+ 
+  major      Major       @relation(fields: [majorId], references: [id])
+  students   Student[]
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}

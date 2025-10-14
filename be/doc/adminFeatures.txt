@@ -1,0 +1,26 @@
+🧑‍💼 Quản trị viên (Admin)
+🔹 Chức năng chính
+🏫 Quản lý tài khoản
+    - Tạo, sửa, xóa tài khoản sinh viên và giảng viên
+    - Khi chỉnh sửa có thể phân quyền (role)
+    - Reset mật khẩu, khóa/mở khóa tài khoản
+📚 Quản lý môn học
+    - Tạo mới, chỉnh sửa, xóa môn học
+    - Gán giảng viên phụ trách từng môn
+    - Quản lý lịch học, thời khóa biểu
+🧾 Quản lý lớp học
+    - Tạo lớp học (theo môn hoặc theo khóa)
+    - Thêm sinh viên vào lớp
+    - Chuyển lớp, tách lớp
+🎓 Quản lý điểm & học tập
+    - Xem toàn bộ điểm của sinh viên
+    - Chỉnh sửa điểm (khi cần)
+    - Thống kê điểm trung bình, tỷ lệ đậu/rớt
+💼 Quản lý hệ thống
+    - Cấu hình năm học, học kỳ, lịch học
+    - Quản lý dữ liệu sao lưu, phục hồi
+    - Quản lý thông báo, tin tức toàn hệ thống
+📊 Báo cáo & thống kê
+    - Thống kê số lượng sinh viên, giảng viên
+    - Thống kê điểm, kết quả học tập theo lớp, theo môn
+    - Xuất báo cáo (Excel, PDF)

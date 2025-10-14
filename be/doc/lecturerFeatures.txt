@@ -1,0 +1,22 @@
+👨‍🏫 2. Giảng viên (Teacher)
+🔹 Chức năng chính
+📘 Môn học
+    - Xem danh sách các môn mình giảng dạy
+    - Xem lịch dạy (theo tuần/tháng)
+    - Reset mật khẩu, khóa/mở khóa tài khoản
+👨‍🎓 Quản lý lớp học
+    - Xem danh sách sinh viên trong lớp
+    - Ghi chú, nhận xét sinh viên
+    - Đánh dấu điểm danh (đi học / vắng)
+🧮 Quản lý điểm
+    - Nhập điểm (chuyên cần, giữa kỳ, cuối kỳ)
+    - Chỉnh sửa điểm (khi được phép)
+    - Gửi điểm để quản trị viên duyệt
+📢 Thông báo
+    - Gửi thông báo cho sinh viên trong lớp
+    - Gửi tài liệu học tập, bài tập
+📈 Thống kê cá nhân
+    - Xem thống kê điểm của lớp mình phụ trách
+    - Xem tỷ lệ sinh viên đạt/chưa đạt
+
+
