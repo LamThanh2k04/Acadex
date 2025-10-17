@@ -1,0 +1,12 @@
+import { configureStore } from "@reduxjs/toolkit";
+import userSlice from "./features/users/userSlice";
+export const makeStore = () => {
+    return configureStore({
+        reducer: {
+            userSlice: userSlice
+        },
+    })
+}
+export type AppStore = ReturnType<typeof makeStore>
+export type RootState = ReturnType<AppStore['getState']>
+export type AppDispatch = AppStore['dispatch']

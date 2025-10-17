@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,56 +7,33 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  student
-  lecturer
-  admin
+/// This model has been renamed to 'Renamedclass' during introspection, because the original name 'class' is reserved.
+model Renamedclass {
+  id        Int       @id @default(autoincrement())
+  name      String
+  majorId   Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime
+  major     major     @relation(fields: [majorId], references: [id], onDelete: NoAction, map: "Class_majorId_fkey")
+  student   student[]
+
+  @@index([majorId], map: "Class_majorId_fkey")
+  @@map("class")
 }
 
-model User {
-  id           Int        @id @default(autoincrement())
-  userCode     String?    @unique
-  fullName     String
-  avatar       String?
-  email        String     @unique
-  password     String
-  gender       String?
-  dateOfBirth  DateTime?
-  phone        String?
-  address      String?
-  role         Role       @default(admin)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-
-  // Quan hệ ngược
-  student      Student?
-  lecturer     Lecturer?
+model faculty {
+  id        Int        @id @default(autoincrement())
+  name      String
+  createdAt DateTime   @default(now())
+  updatedAt DateTime
+  lecturer  lecturer[]
+  major     major[]
+  student   student[]
 }
 
-model Student {
-  id              Int        @id @default(autoincrement())
-  userId          Int        @unique
-  classId         Int?
-  facultyId       Int?
-  majorId         Int?
-  trainingLevel   String?
-  status          String?
-  statusUpdatedAt DateTime?
-
-  // Quan hệ
-  user      User     @relation(fields: [userId], references: [id])
-  class     Class?   @relation(fields: [classId], references: [id])
-  faculty   Faculty? @relation(fields: [facultyId], references: [id])
-  major     Major?   @relation(fields: [majorId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model Lecturer {
-  id              Int        @id @default(autoincrement())
-  userId          Int        @unique
+model lecturer {
+  id              Int       @id @default(autoincrement())
+  userId          Int       @unique(map: "Lecturer_userId_key")
   facultyId       Int?
   degree          String?
   specialization  String?
@@ -70,51 +41,69 @@ model Lecturer {
   status          String?
   statusUpdatedAt DateTime?
   stoppedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime
+  faculty         faculty?  @relation(fields: [facultyId], references: [id], map: "Lecturer_facultyId_fkey")
+  user            user      @relation(fields: [userId], references: [id], onDelete: NoAction, map: "Lecturer_userId_fkey")
 
-
-  user      User     @relation(fields: [userId], references: [id])
-  faculty   Faculty? @relation(fields: [facultyId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@index([facultyId], map: "Lecturer_facultyId_fkey")
 }
 
-model Faculty {
-  id         Int         @id @default(autoincrement())
-  name       String
+model major {
+  id           Int            @id @default(autoincrement())
+  name         String
+  facultyId    Int
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  Renamedclass Renamedclass[]
+  faculty      faculty        @relation(fields: [facultyId], references: [id], onDelete: NoAction, map: "Major_facultyId_fkey")
+  student      student[]
 
-
-  majors     Major[]
-  students   Student[]
-  lecturers  Lecturer[]
-
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  @@index([facultyId], map: "Major_facultyId_fkey")
 }
 
-model Major {
-  id         Int         @id @default(autoincrement())
-  name       String
-  facultyId  Int
+model student {
+  id              Int           @id @default(autoincrement())
+  userId          Int           @unique(map: "Student_userId_key")
+  classId         Int?
+  facultyId       Int?
+  majorId         Int?
+  trainingLevel   String?
+  status          String?
+  statusUpdatedAt DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  Renamedclass    Renamedclass? @relation(fields: [classId], references: [id], map: "Student_classId_fkey")
+  faculty         faculty?      @relation(fields: [facultyId], references: [id], map: "Student_facultyId_fkey")
+  major           major?        @relation(fields: [majorId], references: [id], map: "Student_majorId_fkey")
+  user            user          @relation(fields: [userId], references: [id], onDelete: NoAction, map: "Student_userId_fkey")
 
-
-  faculty    Faculty     @relation(fields: [facultyId], references: [id])
-  classes    Class[]
-  students   Student[]   
-
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  @@index([classId], map: "Student_classId_fkey")
+  @@index([facultyId], map: "Student_facultyId_fkey")
+  @@index([majorId], map: "Student_majorId_fkey")
 }
 
-model Class {
-  id         Int         @id @default(autoincrement())
-  name       String
-  majorId    Int
+model user {
+  id          Int       @id @default(autoincrement())
+  userCode    String?   @unique(map: "User_userCode_key")
+  fullName    String
+  avatar      String?
+  email       String    @unique(map: "User_email_key")
+  password    String
+  gender      String?
+  dateOfBirth DateTime?
+  phone       String?
+  address     String?
+  role        user_role @default(admin)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lecturer    lecturer?
+  student     student?
+}
 
- 
-  major      Major       @relation(fields: [majorId], references: [id])
-  students   Student[]
-
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+enum user_role {
+  student
+  lecturer
+  admin
 }

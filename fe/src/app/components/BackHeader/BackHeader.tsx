@@ -1,5 +1,5 @@
 "use client";
-import { BackHeaderType } from "@/app/types/backType";
+import { BackHeaderType } from "@/app/common/types/backType";
 import Link from "next/link";
 
 export default function BackHeader({

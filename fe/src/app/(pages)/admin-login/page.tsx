@@ -3,8 +3,11 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import BackHeader from "@/app/components/BackHeader/BackHeader";
-import { LoginForm } from '@/app/types/authType';
 import { useRouter } from "next/navigation";
+import { loginService } from "@/app/common/api/authService";
+import { LoginType } from "@/app/common/types/authType";
+import { useDispatch } from "react-redux";
+import { loginSuccess } from "@/lib/features/users/userSlice";
 export default function AdminLogin() {
     const [toggle, setToggle] = useState(false);
     const router = useRouter();
@@ -12,13 +15,18 @@ export default function AdminLogin() {
         register,
         handleSubmit,
         formState: { errors, isValid },
-    } = useForm<LoginForm>({ mode: "onChange" });
-
-    const onSubmit = (data: LoginForm) => {
-        toast.success("Đăng nhập thành công!");
-        console.log("Form Data:", data);
-        router.push("/doashboard-admin");
-    };
+    } = useForm<LoginType>({ mode: "onChange" });
+    const dispatch = useDispatch();
+    const onsubmit = async (data: LoginType) => {
+        const res = await loginService(data);
+        console.log("login: ", res);
+        const { accessToken, user } = res.data.data.token;
+        const userData = { ...user, accessToken };
+        localStorage.setItem("user", JSON.stringify(userData));
+        dispatch(loginSuccess(userData));
+        toast.success("Đăng nhập thành công");
+        router.push("/dashboard-admin");
+    }
 
     return (
         <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-200 via-white to-blue-100">
@@ -47,7 +55,7 @@ export default function AdminLogin() {
 
                     {/* Form */}
                     <form
-                        onSubmit={handleSubmit(onSubmit)}
+                        onSubmit={handleSubmit(onsubmit)}
                         className="flex flex-col gap-5 text-gray-700"
                     >
                         {/* Email */}
