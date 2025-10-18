@@ -19,70 +19,225 @@ enum Role {
   admin
 }
 
+enum Gender {
+  male
+  female
+  other
+}
+
+enum StudentStatus {
+  studying
+  reserved
+  truant
+  graduate
+}
+
+enum EducationType {
+  fullTime
+  partTime
+  bridging
+  distanceLearning
+}
+
+enum TrainingLevel {
+  intermediate
+  college
+  bachelor
+  master
+  doctorate
+}
+
+enum LecturerStatus {
+  working
+  reserved
+  retired
+  transferred
+  terminated
+}
+
+enum SubjectType {
+  mandatory
+  elective
+}
+
+enum TuitionStatus {
+  unpaid
+  pending
+  paid
+  overdue
+}
+
+enum PaymentMethod {
+  vnpay
+}
+
+enum GraduationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum CertificateStatus {
+  pending
+  issued
+  revoked
+}
+
+enum PaymentStatus {
+  pending
+  success
+  failed
+  canceled
+}
+
+enum AttendanceStatus {
+  present
+  absent
+  late
+  excused
+}
+
+enum NotificationType {
+  system
+  personal
+  broadCast
+}
+
+enum InternshipStatus {
+  pending
+  inProgress
+  completed
+  failed
+}
+
+enum AuditAction {
+  created
+  updated
+  deleted
+  get
+  login
+  logout
+  payment
+  approve
+  reject
+}
+
+enum ReportType {
+  academic
+  finance
+  attendance
+  grade
+  system
+}
+
+enum ExamType {
+  final
+  midterm
+}
+
+enum GradeType {
+  midterm
+  theory1
+  theory2
+  practice1
+  practice2
+  practice3
+  final
+  total
+}
+
 model User {
-  id           Int        @id @default(autoincrement())
-  userCode     String?    @unique
+  id           Int            @id @default(autoincrement())
   fullName     String
   avatar       String?
-  email        String     @unique
+  email        String         @unique
   password     String
-  gender       String?
+  gender       Gender?
   dateOfBirth  DateTime?
-  phone        String?
+  phoneNumber  String?
   address      String?
-  role         Role       @default(admin)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  role         Role           @default(student)
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
-  // Quan hệ ngược
+  // Relations
   student      Student?
   lecturer     Lecturer?
+
+  notifications Notification[]
+  auditLogs     AuditTrail[]
+  reports       Report[]    @relation("UserReports")
+  checkedGraduations GraduationApplication[] @relation("AdminCheckGraduation")
+  checkedCertificates  Certificate[] @relation("AdminCheckCertificate")
+
+  @@index([email])
 }
 
 model Student {
-  id              Int        @id @default(autoincrement())
-  userId          Int        @unique
+  id              Int              @id @default(autoincrement())
+  userId          Int              @unique
+  studentCode     String           @unique
+  admissionYear   Int?
+  graduateYear    Int?
+  academicYear    String?
+  gpa             Float?
+  creditsEarned   Int?             @default(0)
+  status          StudentStatus    @default(studying)
+  statusUpdatedAt DateTime?
+  isActive        Boolean          @default(true)
+  isGraduated     Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  // Foreign keys
   classId         Int?
   facultyId       Int?
-  majorId         Int?
-  trainingLevel   String?
-  status          String?
-  statusUpdatedAt DateTime?
+  programId       Int?
+  majorId Int?
 
-  // Quan hệ
+  // Relations
   user      User     @relation(fields: [userId], references: [id])
   class     Class?   @relation(fields: [classId], references: [id])
   faculty   Faculty? @relation(fields: [facultyId], references: [id])
-  major     Major?   @relation(fields: [majorId], references: [id])
+  program   Program? @relation(fields: [programId], references: [id])
+  major   Major? @relation(fields: [majorId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  enrollments Enrollment[]
+  tuitionFees TuitionFee[]
+  grades      Grade[]
+  certificates    Certificate[]
+  graduationApps  GraduationApplication[]
+  internship   Internship?
+
+  @@index([studentCode])
 }
 
 model Lecturer {
   id              Int        @id @default(autoincrement())
   userId          Int        @unique
+  lecturerCode    String     @unique
   facultyId       Int?
   degree          String?
   specialization  String?
   position        String?
-  status          String?
+  status          LecturerStatus @default(working)
   statusUpdatedAt DateTime?
+  isActive        Boolean @default(true)
   stoppedAt       DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
+  courses        CourseSection[]
 
   user      User     @relation(fields: [userId], references: [id])
   faculty   Faculty? @relation(fields: [facultyId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Faculty {
   id         Int         @id @default(autoincrement())
   name       String
-
+  isActive   Boolean @default(true)
 
   majors     Major[]
   students   Student[]
@@ -96,11 +251,12 @@ model Major {
   id         Int         @id @default(autoincrement())
   name       String
   facultyId  Int
-
+  isActive   Boolean @default(true)
+  programs   Program[]
 
   faculty    Faculty     @relation(fields: [facultyId], references: [id])
   classes    Class[]
-  students   Student[]   
+  students   Student[]
 
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
@@ -110,11 +266,424 @@ model Class {
   id         Int         @id @default(autoincrement())
   name       String
   majorId    Int
+  isActive   Boolean @default(true)
 
- 
   major      Major       @relation(fields: [majorId], references: [id])
   students   Student[]
 
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
+
+model Program {
+  id             Int @id @default(autoincrement())
+  name           String
+  trainingLevel  TrainingLevel?  @default(bachelor)
+  educationType  EducationType? @default(fullTime)
+  durationYears  Int?
+  totalCredits   Int?
+  tuitionFee     Float?
+  majorId        Int?
+  major          Major? @relation(fields: [majorId], references: [id])
+  curriculumId   Int?
+  curriculum     Curriculum?     @relation(fields: [curriculumId], references: [id])
+  students        Student[]
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Curriculum {
+  id            Int          @id @default(autoincrement())
+  majorId       Int
+  name          String
+  totalCredits  Int
+  numYears      Int      @default(4)
+  numSemesters  Int      @default(8)
+  avgCreditsPerSemester  Float?
+  description           String?
+  subjects      CurriculumSubject[]
+
+  major         Major       @relation(fields: [majorId], references: [id])
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model CurriculumSubject {
+  id            Int      @id @default(autoincrement())
+  curriculumId  Int
+  subjectId     Int
+  type          SubjectType  @default(mandatory)
+  semesterOrder  Int?         // vị trí môn trong CTĐT
+  semesterId     Int?         // học kỳ thực tế (năm học)
+  curriculum    Curriculum   @relation(fields: [curriculumId], references: [id])
+  subject       Subject      @relation(fields: [subjectId], references: [id])
+   semester       Semester?    @relation(fields: [semesterId], references: [id])
+
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Subject {
+  id                     Int      @id @default(autoincrement())
+  code                   String
+  name                   String
+  credits                Int
+  theoryHours            Int
+  practiceHours          Int
+  prerequisiteIds        Int[]    @default([]) // consider a many-to-many table if you want rich queries
+  courseSections         CourseSection[]
+  curriculum             CurriculumSubject[]
+
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model Semester {
+  id                    Int      @id @default(autoincrement())
+  name                  String
+  academicYear          String
+  startDate             DateTime
+  endDate               DateTime
+
+  courseSections        CourseSection[]
+  tuitionFees           TuitionFee[]
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model CourseSection {
+  id                    Int     @id @default(autoincrement())
+  subjectId             Int
+  lecturerId            Int?
+  semesterId            Int
+  groupCode             String  @unique
+  maxStudents           Int
+
+  subject               Subject   @relation(fields: [subjectId],  references: [id])
+  lecturer              Lecturer? @relation(fields: [lecturerId], references: [id])
+  semester              Semester  @relation(fields: [semesterId], references: [id])
+  enrollments           Enrollment[]
+  schedules             Schedule[]
+  exams                 ExamSchedule[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Schedule {
+  id                    Int       @id @default(autoincrement())
+  courseId              Int
+  roomId                Int
+  dayOfWeek             Int?
+  startTime             String
+  endTime               String
+  startDate   DateTime   // Ngày bắt đầu áp dụng (vd: đầu học kỳ)
+  endDate     DateTime   // Ngày kết thúc áp dụng (vd: hết học kỳ)
+  course                CourseSection @relation(fields: [courseId], references: [id])
+  room                  Room          @relation(fields: [roomId],   references: [id])
+  attendances           Attendance[]
+  attendanceCodes       AttendanceCode[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Enrollment {
+  id                   Int        @id @default(autoincrement())
+  studentId            Int
+  courseId             Int
+  enrolledAt           DateTime   @default(now())
+
+  student              Student    @relation(fields: [studentId], references: [id])
+  course               CourseSection @relation(fields: [courseId], references: [id])
+
+  grades               Grade[]
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model Grade {
+  id                 Int        @id @default(autoincrement())
+  enrollmentId       Int
+  totalScore         Float?
+  gpaScale4          Float?
+  letterGrade        String?
+  classification     String?
+  isEligibleForExam  Boolean    @default(false)
+  remark             String?
+
+  components         GradeComponent[]
+  histories          GradeHistory[]
+  enrollment         Enrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+}
+
+model GradeComponent {
+  id          Int        @id @default(autoincrement())
+  gradeId     Int
+  type        GradeType
+  score       Float?
+  weight      Float?
+  note        String?
+
+  grade       Grade      @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model GradeHistory {
+  id          Int        @id @default(autoincrement())
+  gradeId     Int
+  userId      Int?
+  oldData     Json?
+  newData     Json?
+  changedAt   DateTime   @default(now())
+
+  grade       Grade      @relation(fields: [gradeId], references: [id], onDelete: Cascade)
+  user        User?      @relation(fields: [userId], references: [id])
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Attendance {
+  id                  Int            @id @default(autoincrement())
+  scheduleId          Int
+  studentId           Int
+  status              AttendanceStatus
+
+  schedule            Schedule       @relation(fields: [scheduleId], references: [id])
+  student             Student        @relation(fields: [studentId], references: [id])
+
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+}
+
+model AttendanceCode {
+  id          Int       @id @default(autoincrement())
+  scheduleId  Int
+  code        String    @unique
+  expiredAt   DateTime
+  isUsed      Boolean   @default(false)
+
+  schedule    Schedule  @relation(fields: [scheduleId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model ExamSchedule {
+  id                Int         @id @default(autoincrement())
+  courseId          Int
+  roomId            Int
+  type              ExamType
+  examStart         DateTime
+  examEnd           DateTime
+  duration          Int?
+  note              String?
+
+  course            CourseSection @relation(fields: [courseId], references: [id])
+  room              Room          @relation(fields: [roomId], references: [id])
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+}
+
+model Company {
+  id                 Int         @id @default(autoincrement())
+  name               String
+  address            String?
+  phoneNumber        String?
+  email              String?
+  internships        Internship[]
+
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+}
+
+model Internship {
+  id           Int       @id @default(autoincrement())
+  studentId    Int       @unique
+  companyId    Int
+  startDate    DateTime
+  endDate      DateTime
+  status       InternshipStatus       @default(pending)
+  student      Student   @relation(fields: [studentId], references: [id])
+  company      Company   @relation(fields: [companyId], references: [id])
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model TuitionFee {
+  id           Int            @id @default(autoincrement())
+  studentId    Int
+  semesterId   Int
+  amount       Float
+  status       TuitionStatus  @default(unpaid)
+  remainingAmount Float? @default(0)
+  dueDate DateTime?
+  description  String?
+
+  student      Student    @relation(fields: [studentId], references: [id])
+  semester     Semester   @relation(fields: [semesterId], references: [id])
+  payments     Payment[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Payment {
+  id               Int          @id @default(autoincrement())
+  tuitionFeeId     Int
+  method           PaymentMethod @default(vnpay)
+  amount           Float
+  status           PaymentStatus @default(pending)
+
+  // 🔹 Thông tin VNPay trả về
+  transactionId    String?        // vnp_TxnRef (mã đơn hàng bạn gửi)
+  vnpTransactionNo String?        // vnp_TransactionNo (mã giao dịch VNPay)
+  bankCode         String?        // vnp_BankCode
+  bankTranNo       String?        // vnp_BankTranNo
+  cardType         String?        // vnp_CardType
+  responseCode     String?        // vnp_ResponseCode
+  transactionStatus String?       // vnp_TransactionStatus
+  tmnCode          String?        // vnp_TmnCode
+  payDate          DateTime?      // vnp_PayDate
+
+  // 🔹 Dữ liệu bổ sung
+  description      String?
+  secureHash       String?        // để lưu hash tạm nếu cần debug
+  
+  tuitionFee       TuitionFee     @relation(fields: [tuitionFeeId], references: [id])
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+
+model Building {
+  id       Int      @id @default(autoincrement())
+  name     String
+  location String?
+  rooms    Room[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Room {
+  id          Int        @id @default(autoincrement())
+  name        String
+  buildingId  Int
+
+  schedules    Schedule[]
+  exams        ExamSchedule[]
+
+  building     Building    @relation(fields: [buildingId], references: [id])
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Notification {
+  id           Int       @id @default(autoincrement())
+  userId       Int?
+  title        String
+  message      String
+  type         NotificationType @default(system)
+  targetRole   Role?
+  targetUserIds   Int[]   @default([])
+  read          Boolean     @default(false)
+
+  user         User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model AuditTrail {
+  id           Int          @id @default(autoincrement())
+  userId       Int
+  modelName    String
+  recordId     Int?
+  action       AuditAction
+  beforeData   Json?
+  afterData    Json?
+  deviceInfo   String?
+
+  user         User          @relation(fields: [userId], references: [id])
+
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Report {
+  id          Int        @id @default(autoincrement())
+  title       String
+  type        ReportType
+  data        Json
+  createdBy   Int?
+  user        User?      @relation("UserReports", fields: [createdBy], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Setting {
+  id          Int        @id @default(autoincrement())
+  key         String     @unique
+  value       String
+}
+
+model CertificateTemplate {
+  id           Int       @id @default(autoincrement())
+  name         String
+  description  String?
+  required     Boolean   @default(false)
+  validPeriod  Int?
+  fileUrl      String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  certificates Certificate[]
+}
+
+model Certificate {
+  id              Int       @id @default(autoincrement())
+  studentId       Int
+  templateId      Int
+  fileUrl         String?
+  issueDate       DateTime?
+  validUntil      DateTime?
+  status          CertificateStatus   @default(pending)
+  description     String?
+
+  student         Student   @relation(fields: [studentId], references: [id])
+  template        CertificateTemplate @relation(fields: [templateId], references: [id])
+
+  checkedBy       Int?
+  checkedAt       DateTime?
+  admin           User?     @relation("AdminCheckCertificate", fields: [checkedBy], references: [id])
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model GraduationApplication {
+  id                Int       @id @default(autoincrement())
+  studentId         Int
+  status            GraduationStatus  @default(pending)
+  note              String?
+  checkedBy         Int?
+  checkedAt         DateTime?
+  certificateIssued Boolean   @default(false)
+
+  student           Student   @relation(fields: [studentId], references: [id])
+  admin             User?     @relation("AdminCheckGraduation", fields: [checkedBy], references: [id])
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}
+
