@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 import BackHeader from "@/app/components/BackHeader/BackHeader";
-import { LoginForm } from '@/app/types/authType';
 import { useRouter } from "next/navigation";
+import { LoginType } from "@/app/common/types/authType";
 export default function LecturerLogin() {
     const [toggle, setToggle] = useState(false);
     const router = useRouter();
@@ -12,12 +12,12 @@ export default function LecturerLogin() {
         register,
         handleSubmit,
         formState: { errors, isValid },
-    } = useForm<LoginForm>({ mode: "onChange" });
+    } = useForm<LoginType>({ mode: "onChange" });
 
-    const onSubmit = (data: LoginForm) => {
+    const onSubmit = (data: LoginType) => {
         toast.success("Đăng nhập thành công!");
         console.log("Form Data:", data);
-        router.push("/doashboard-lecturer");
+        router.push("/dashboard-lecturer");
     };
 
     return (
